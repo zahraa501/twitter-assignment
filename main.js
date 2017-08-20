@@ -1,8 +1,9 @@
 var file = require('./fileReader.js');
 var userData;
 var tweetData;
-var accountList;
-
+var accounts = [];
+var accountsSorted = [];
+var follows = [];
 var main = function() {
     //get data from text files
     Promise.all([
@@ -11,54 +12,59 @@ var main = function() {
     ]).then(function(response) {
         userData = response[0];
         tweetData = response[1];
-        accountList = getAccountsList(userData);
+        parseUserData(userData);
         displayTweets();
     });
 };
-var print = function(text) {
-    console.log(text);
-};
-//user data 
-var getAccountsList = function(rawText) {
-    var accounts = [];
-    var usersRaw = rawText.replace(/\r?\n|\r/g, ' ').replace(/,/g, '').replace(/follows /g, "").split(' ');
-    for (var index = 0; index < usersRaw.length; index++) {
-        if (!accounts.includes(usersRaw[index])) {
-            accounts.push(usersRaw[index]);
+var parseUserData = function(rawText) {
+    //split data on newline character 
+    var rawUserData = rawText.split(/\r?\n|\r/g);
+    for (var index = 0; index < rawUserData.length; index++) {
+        //split account name and follwers
+        var accountInformation = rawUserData[index].split('follows');
+        //create list of accounts mentioned
+        var users = accountInformation[1].split(',');
+        users.push(accountInformation[0].trim())
+        for (var userIndex = 0; userIndex < users.length; userIndex++) {
+            //attempt to add account and followers 
+            addAccount(users[userIndex], (userIndex === (users.length - 1)) ? accountInformation[1] : "");
         }
     }
-    return accounts.sort();
 };
-var getAccountsFollowed = function(user) {
-    var follows = [user];
-    var usersRaw = userData.split(/\r?\n|\r/g);
-    for (var index = 0; index < usersRaw.length; index++) {
-        var data = usersRaw[index].split('follows');
-        if (user.trim() === data[0].trim()) {
-            var users = data[1].split(',');
-            for (var userIndex = 0; userIndex < users.length; userIndex++) {
-                if (!follows.includes(users[userIndex])) {
-                    follows.push(users[userIndex].trim());
-                }
-            }
-        }
+var addAccount = function(username, followsInfo) {
+    var accountIndex = accounts.indexOf(username.trim());
+    if (accountIndex === -1) {
+        //add account to list of accounts
+        //updates a list of people the account follows
+        accounts.push(username.trim());
+        accountsSorted.push(username.trim());
+        follows.push([username.trim()]);
+        accountIndex = accounts.indexOf(username.trim());
     }
-    return follows;
-};
-var getUserTweets = function(users) {
-    var tweets = tweetData.split(/\r?\n|\r/g);
-    for (var index = 0; index < tweets.length; index++) {
-        var tweetsUser = tweets[index].substring(0, tweets[index].indexOf('>'));
-        var tweet = tweets[index].substring(tweets[index].indexOf('>')+2, tweets[index].length);
-        if (users.includes(tweetsUser)) {
-            print('@' + tweetsUser + ': ' + tweet);
-        }
+    if (followsInfo !== "") {
+    	//update account follows
+        follows[accountIndex] = follows[accountIndex].concat(followsInfo.replace(' ', '').split(','));
     }
 };
 var displayTweets = function() {
-    for (var index = 0; index < accountList.length; index++) {
-        print(accountList[index])
-        getUserTweets(getAccountsFollowed(accountList[index]));
+	accountsSorted.sort(); 
+    for (var index = 0; index < accountsSorted.length; index++) {
+        console.log(accountsSorted[index]);
+        //send list of accounts the selected account follows
+        getUserTweets(follows[accounts.indexOf(accountsSorted[index])]);
+    }
+};
+var getUserTweets = function(users) {
+    var tweets = tweetData.split(/\r?\n|\r/g);
+    //iterate through all tweets 
+    for (var index = 0; index < tweets.length; index++) {
+    	//get username of tweet
+        var tweetsUser = tweets[index].substring(0, tweets[index].indexOf('>'));
+        var tweet = tweets[index].substring(tweets[index].indexOf('>')+2, tweets[index].length);
+        //check if user is followed by selected account
+        if (users.includes(tweetsUser)) {
+            console.log('@' + tweetsUser + ': ' + tweet);
+        }
     }
 };
 
