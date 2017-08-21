@@ -2,8 +2,8 @@ var file = require('./fileReader.js');
 var userData;
 var tweetData;
 var accounts = [];
-var accountsSorted = [];
-var follows = [];
+var accountFollows = {};
+
 var main = function() {
     //get data from text files
     Promise.all([
@@ -35,26 +35,23 @@ var parseUserData = function(rawText) {
     }
 };
 var addAccount = function(username, followsInfo) {
-    var accountIndex = accounts.indexOf(username.trim());
-    if (accountIndex === -1) {
+    if (!accounts.includes(username.trim())) {
         //add account to list of accounts
         //updates a list of people the account follows
         accounts.push(username.trim());
-        accountsSorted.push(username.trim());
-        follows.push([username.trim()]);
-        accountIndex = accounts.indexOf(username.trim());
+        accountFollows[username.trim()] = [username.trim()];
     }
     if (followsInfo !== "") {
     	//update account follows
-        follows[accountIndex] = follows[accountIndex].concat(followsInfo.replace(' ', '').split(','));
+        accountFollows[username.trim()] = [username.trim()].concat(followsInfo.replace(' ', '').split(','));
     }
 };
 var displayTweets = function() {
-	accountsSorted.sort(); 
-    for (var index = 0; index < accountsSorted.length; index++) {
-        console.log(accountsSorted[index]);
+	accounts.sort(); 
+    for (var index = 0; index < accounts.length; index++) {
+        console.log(accounts[index]);
         //send list of accounts the selected account follows
-        getUserTweets(follows[accounts.indexOf(accountsSorted[index])]);
+        getUserTweets(accountFollows[accounts[index]]);
     }
 };
 var getUserTweets = function(users) {
