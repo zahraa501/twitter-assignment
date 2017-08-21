@@ -29,7 +29,8 @@ My thoughts or assumptions, while solving the problem:
 - A compromise needs to be made when displaying tweets. The reason for this is because the worst case scenario would be that all tweets in a text file are relevant to a specific user. The impact would be that a user would have to wait until an entire text file is looped through and, depending on the amount of tweets that exist, this could mean a long waiting period. The real Twitter has solved this specific problem by implementing a cap on the amount of tweets retrieved and rendered at a time. In this case I would also implement a cap but because of the small data set, I do not know what the optimal cap would be.
 - The entire program is dependent on the format of the text file and therefore will not work as intended if it does not adhere to it.
 
-To run:
+Command to run code:
+
 node main.js
 
 Version of Node used - V8.3
