@@ -14,6 +14,8 @@ var main = function() {
         tweetData = response[1];
         parseUserData(userData);
         displayTweets();
+    }).catch(function(error){
+    	console.log(error);
     });
 };
 var parseUserData = function(rawText) {
@@ -22,12 +24,13 @@ var parseUserData = function(rawText) {
     for (var index = 0; index < rawUserData.length; index++) {
         //split account name and follwers
         var accountInformation = rawUserData[index].split('follows');
+        //add current user
+        addAccount(accountInformation[0].trim(),  accountInformation[1]);
         //create list of accounts mentioned
         var users = accountInformation[1].split(',');
-        users.push(accountInformation[0].trim())
         for (var userIndex = 0; userIndex < users.length; userIndex++) {
             //attempt to add account and followers 
-            addAccount(users[userIndex], (userIndex === (users.length - 1)) ? accountInformation[1] : "");
+            addAccount(users[userIndex],"");
         }
     }
 };
@@ -63,7 +66,7 @@ var getUserTweets = function(users) {
         var tweet = tweets[index].substring(tweets[index].indexOf('>')+2, tweets[index].length);
         //check if user is followed by selected account
         if (users.includes(tweetsUser)) {
-            console.log('@' + tweetsUser + ': ' + tweet);
+            console.log('@' + tweetsUser + ': ' + tweet.substring(0,140));
         }
     }
 };
